@@ -1,12 +1,13 @@
-import { useState, type PointerEvent, type ReactNode } from 'react';
+import { lazy, Suspense, useState, type PointerEvent, type ReactNode } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import MagneticButton from '@/components/ui/MagneticButton';
-import LiquidSculpture from '@/components/hero/LiquidSculpture';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import ResumeButton from '@/components/ui/ResumeButton';
 import { hero, profile } from '@/lib/content';
 const EASE = [0.22, 1, 0.36, 1] as const;
+
+const LiquidSculpture = lazy(() => import('@/components/hero/LiquidSculpture'));
 
 type FloatingShapeProps = {
   mx: MotionValue<number>;
@@ -72,7 +73,9 @@ export default function Hero() {
       {section && (
         <div className="absolute inset-y-0 right-0 w-full lg:left-[34%] lg:w-[66%]" aria-hidden="true">
           <ErrorBoundary fallback={<SculptureFallback />}>
-            <LiquidSculpture source={section} />
+            <Suspense fallback={<SculptureFallback />}>
+              <LiquidSculpture source={section} />
+            </Suspense>
           </ErrorBoundary>
         </div>
       )}
