@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { CheckCircle2, Loader2, Send, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -33,6 +33,7 @@ export default function ContactForm() {
   const [values, setValues] = useState<FormValues>(emptyValues);
   const [status, setStatus] = useState<Status>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const submittingRef = useRef(false);
 
   const updateField = (field: keyof FormValues) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setValues((current) => ({ ...current, [field]: event.target.value }));
@@ -40,6 +41,8 @@ export default function ContactForm() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submittingRef.current) return;
+
     const validationError = validate(values);
     if (validationError) {
       setErrorMessage(validationError);
@@ -47,23 +50,30 @@ export default function ContactForm() {
       return;
     }
 
+    submittingRef.current = true;
     setStatus('sending');
     setErrorMessage(null);
 
-    const { error } = await supabase.from('contact_messages').insert({
-      name: values.name.trim(),
-      email: values.email.trim(),
-      message: values.message.trim(),
-    });
+    try {
+      const { data, error } = await supabase.functions.invoke<{ ok: boolean }>('send-contact-email', {
+        body: {
+          name: values.name.trim(),
+          email: values.email.trim(),
+          message: values.message.trim(),
+        },
+      });
 
-    if (error) {
-      setErrorMessage('Something went wrong while sending. Please try again in a moment.');
-      setStatus('error');
-      return;
+      if (error || data?.ok !== true) {
+        setErrorMessage('Your message could not be delivered. Please check your connection and try again.');
+        setStatus('error');
+        return;
+      }
+
+      setValues(emptyValues);
+      setStatus('success');
+    } finally {
+      submittingRef.current = false;
     }
-
-    setValues(emptyValues);
-    setStatus('success');
   };
 
   if (status === 'success') {
@@ -73,7 +83,7 @@ export default function ContactForm() {
           <CheckCircle2 className="h-8 w-8 text-success-400" />
         </span>
         <div className="flex flex-col gap-3">
-          <h3 className="font-display text-3xl font-bold uppercase text-ink-100">Message received</h3>
+          <h3 className="font-display text-3xl font-bold uppercase text-ink-100">Message sent successfully</h3>
           <p className="max-w-sm text-base leading-relaxed text-ink-300">
             Thank you for reaching out. I will get back to you as soon as I can.
           </p>
