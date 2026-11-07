@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: #050507;
+    color: #e8e8f0;
+  }
+
+  body {
+    @apply font-sans antialiased bg-ink-950 text-ink-100;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: #ff2e88;
+    color: #050507;
+  }
+
+  section {
+    scroll-margin-top: 72px;
+  }
+
+  :focus-visible {
+    outline: 2px solid #c084fc;
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  .text-gradient {
+    background-image: linear-gradient(100deg, #a855f7 0%, #3b82f6 30%, #ff2e88 60%, #ff8a3d 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-shift 9s ease infinite;
+  }
+
+  .glass {
+    @apply bg-white/[0.04] backdrop-blur-xl border border-white/10;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-3 text-xs font-medium uppercase tracking-[0.28em] text-ink-300;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html.has-custom-cursor,
+  html.has-custom-cursor * {
+    cursor: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
